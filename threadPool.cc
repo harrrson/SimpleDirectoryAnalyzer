@@ -1,14 +1,17 @@
 #include "threadPool.hh"
 
 ThreadPool::ThreadPool(uint numOfThr)
-{
+{   
+    if(numOfThr>2000) std::cout<<"You want "<<numOfThr<<" threads, i see you're brave.\n"
+                               <<"Beware, app may halt when too much threads are created!";
     if(numOfThr<1 && std::thread::hardware_concurrency()>0)
     {
         numOfThr=std::thread::hardware_concurrency();
     } 
     else if(numOfThr<1 && std::thread::hardware_concurrency()==0)
     {
-        throw "Number of threads was set to 0, and cannot get default thread count from the system!";
+        std::cout<<"Cannot get number of system's threads, created 4 threads (Got pretty good times in tests)";
+        numOfThr=4;
     }
     for(int i=0; i<numOfThr; i++)
     {
