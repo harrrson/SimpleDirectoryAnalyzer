@@ -1,42 +1,64 @@
 #include "zadanie.hh"
 
 //Iterate through directories, return number of files found and total number of lines
-int iterate_through_directory(fs::path const p, uint& nof, ulong& nol)
+int iterate_through_directory(fs::path const p, uint& nof, lineCountData& nol, ThreadPool& tp)
 {
-    std::cout<<p<<std::endl;
     if(!fs::exists(p))
     {
         std::cout<<"Path does not exist: "<<p<<'\n';
         return 1;
     }
-    ulong temp_line_count;
+    lineCountData tempLineCount;
     nof=0;
-    nol=0;
+    nol.lines=0;
+    //Iterator handles an recursion for me, i don't need to check for directories anymore
     for(auto const de : fs::recursive_directory_iterator(p))
     {
+        //We wnat to check only regular files. Pipes etc are out of our interest.
         if(de.is_regular_file())
         {
-            count_lines_in_file(de.path(),temp_line_count);
+            tp.queueFile(de.path());
             nof+=1;
-            nol+=temp_line_count;
         }
     }
+    nol=tp.returnResult();
     return 0;
 }
 
-void count_lines_in_file(std::string const p, ulong& lc)
+//
+void count_lines_in_file(std::string const p, lineCountData& lc)
 {
     std::ifstream ifile (p);
+    lc.lines=0;
     if(!ifile)
     {
-        lc=0;
         return;
     }
-    lc=0;
-    std::string dump;
-    while(getline(ifile,dump))
+    std::string line;
+    while(getline(ifile,line))
     {
-        lc+=1;
+        if(line.empty()) lc.emptyLines+=1;
+        else lc.nonEmptyLines+=1; 
+        lc.lines+=1;
+        if(!line.empty())
+        {
+            bool nonspaceFound=false;
+            for(const char c : line)
+            {
+                bool charIsSpace = isspace(c)!=0;
+                //If there are some consecutive white spaces, we can ignore them
+                if(charIsSpace and nonspaceFound)
+                {
+                    nonspaceFound=false;
+                    lc.wordCount+=1;
+                }
+                else if(!charIsSpace)
+                {
+                    nonspaceFound=true;
+                    lc.letterCount+=1;
+                }
+            }
+        }
     }
 }
 

@@ -2,6 +2,7 @@ build
 .cache
 out
 .vscode
+CMakeSettings.json
 
 # Prerequisites
 *.d
