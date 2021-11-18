@@ -3,7 +3,7 @@
 ## What this program does
 
 Simple program, which analyzes:
-- total number of files (regular, pipes etc. does not count) (also checks subdirectories)
+- total number of files (only regular files, pipes etc. does not count) (also checks subdirectories)
 - total number of lines in files
 - total number of words and non-whitespace characters
 
